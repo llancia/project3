@@ -82,11 +82,10 @@ def train_complete_SVD(M, K=9):
 def special_svd(M, K=9):
     useravg, itemavg = find_user_and_item_avg(M)
     R_norm = norm_matrix(M, useravg, itemavg)
-    U, s, V = linalg.svd( R_norm, full_matrices=False )
-    m_user,n_movies = R_norm.shape
+    U, s, V = linalg.svd( R_norm, full_matrices = False)
     new_s = s[:K]
     sigma = linalg.diagsvd(new_s, K, K)
-    return U[:,:K], V[:K,:], sigma_1_2
+    return U[:,:K], V[:K,:], sigma
 
 
 @jit(nopython=True)
@@ -199,7 +198,27 @@ def read_new_user(filename):
         items.append([m,r])
     return items
 
-def reccomend_for_a_new_user(SIGMA, Vh, N_U):
-    
+def reccomend_for_a_new_user(SIGMA, Vh, N_U, useravg):
+    R_new=np.zeros(Vh.shape[1])
+    rated_movie=[]
+    for entry in N_U:
+        R_new[entry[0]]=entry[1]
+        rated_movie.append(entry[0])
+    SIGMA_m1 = np.power(SIGMA.diagonal(), -1)
+    SIGMA_m1 = linalg.diagsvd(SIGMA_m1, SIGMA.shape[0],SIGMA.shape[0])
 
+
+    predict_vector = R_new.dot(Vh.T).dot(SIGMA_m1).dot(SIGMA).dot(Vh)
+    suggested = [ (i,predict_vector[i])  for i in range(len(predict_vector))]
+    suggested.sort(key=lambda x: x[1], reverse = True)
+    out=[]
+    for item in suggested:
+        if item[0] in rated_movie:
+            continue
+        else:
+            out.append(item[0])
+        if len(out)==5:
+            break
+        
+    return out
 
