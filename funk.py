@@ -41,7 +41,7 @@ def find_useritem_bias(M, mu):
 @jit(nopython=True)
 def predict(u_i, i_a, U, V, b_u, b_i, mu ):
     
-    rating = mu 
+    rating = b_u[u_i] 
     #Dot product
     for f in range(U.shape[0]):
         rating += U[f, u_i] * V[f, i_a]
@@ -133,4 +133,4 @@ my_train_SVD(R.row, R.col, R.data, U, V, K, useravg, itembias, mu )
 
 
 
-print validate_with_testdata("./ml-100k/u1.test", U, V, userbias,itembias, mu)
+print validate_with_testdata("./ml-100k/u1.test", U, V, useravg,itembias, mu)
